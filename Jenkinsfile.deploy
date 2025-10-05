@@ -1,0 +1,29 @@
+pipeline {
+  agent { label 'docker' }       // ensure this node has docker installed; or use agent any
+  stages {
+    stage('Checkout') {
+      steps {
+        // If job is "Pipeline script from SCM" the repo is already checked out to run this file.
+        // This ensures the workspace contains the compose file.
+        checkout scm
+      }
+    }
+
+    stage('Deploy (docker compose up)') {
+      steps {
+        // adjust path to your compose file if in subfolder
+        sh """
+          set -o errexit
+          # show file for debug
+          ls -la
+          # start containers (use docker compose v2)
+          docker compose -f frappe_docker/pwd.yml up -d
+        """
+      }
+    }
+  }
+  post {
+    success { echo "Deploy pipeline finished." }
+    failure { echo "Deploy pipeline failed." }
+  }
+}
