@@ -1,0 +1,26 @@
+pipeline {
+  agent { label 'docker' }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Destroy (docker compose down)') {
+      steps {
+        sh """
+          set -o errexit
+          # stop and remove containers, networks, optionally volumes
+          docker compose -f frappe_docker/pwd.yml down --remove-orphans
+          # if you want to remove volumes:
+          # docker compose -f frappe_docker/pwd.yml down -v --remove-orphans
+          # optional: clean workspace folder
+          rm -rf frappe_docker
+        """
+      }
+    }
+  }
+  post {
+    success { echo "Destroy pipeline finished." }
+    failure { echo "Destroy pipeline failed." }
+  }
+}
