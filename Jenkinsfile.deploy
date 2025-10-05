@@ -1,29 +1,51 @@
 pipeline {
-  agent any     // ensure this node has docker installed; or use agent any
-  stages {
-    stage('Checkout') {
-      steps {
-        // If job is "Pipeline script from SCM" the repo is already checked out to run this file.
-        // This ensures the workspace contains the compose file.
-        checkout scm
-      }
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Create Compose File') {
+            steps {
+                sh '''#!/bin/bash
+                mkdir -p frappe_docker
+                cat > frappe_docker/pwd.yml <<'EOF'
+version: '3.8'
+
+services:
+  app:
+    image: node:alpine
+    container_name: my-node-app
+    ports:
+      - "3000:3000"
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+    command: sh -c "npm install && node app.js"
+EOF
+                '''
+            }
+        }
+
+        stage('Validate Compose File') {
+            steps {
+                sh 'docker-compose -f frappe_docker/pwd.yml config'
+            }
+        }
+
+        stage('Deploy (docker-compose up)') {
+            steps {
+                sh 'docker-compose -f frappe_docker/pwd.yml up -d'
+            }
+        }
     }
 
-    stage('Deploy (docker-compose up)') {
-      steps {
-        // adjust path to your compose file if in subfolder
-        sh """
-          set -o errexit
-          # show file for debug
-          ls -la
-          # start containers (use docker-compose v2)
-          docker-compose -f frappe_docker/pwd.yml up -d
-        """
-      }
+    post {
+        failure {
+            echo 'Deploy pipeline failed.'
+        }
     }
-  }
-  post {
-    success { echo "Deploy pipeline finished." }
-    failure { echo "Deploy pipeline failed." }
-  }
 }
