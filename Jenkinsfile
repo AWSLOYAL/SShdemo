@@ -2,18 +2,18 @@ pipeline {
   agent any   // use a node that has Docker CLI installed, or change to a label: agent { label 'docker' }
 
   environment {
-    GIT_CRED = 'github-pat'
+    GIT_CRED = 'https://github.com/AWSLOYAL/SShdemo.git'
     DOCKER_CRED = 'dockerhub-creds'
     SSH_CRED = 'ec2-ssh-key'
-    IMAGE_NAME = '<yourhubusername>/<your-repo-name>'
+    IMAGE_NAME = 'smartcloud123/https://hub.docker.com/repositories/smartcloud123'
     EC2_USER = 'ubuntu'
-    EC2_HOST = '<EC2_PUBLIC_IP>'   // replace
+    EC2_HOST = '3.21.230.68'   // replace
   }
 
   stages {
     stage('Checkout') {
       steps {
-        git url: 'https://github.com/<your-github-username>/<your-repo>.git', credentialsId: "${env.GIT_CRED}"
+        git url: 'https://github.com/AWSLOYAL/SShdemo.git', credentialsId: "${env.GIT_CRED}"
       }
     }
 
