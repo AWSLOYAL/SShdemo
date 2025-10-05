@@ -4,7 +4,6 @@ stage('Create Compose File') {
         mkdir -p frappe_docker
         cat > frappe_docker/pwd.yml <<EOF
 version: '3.8'
-
 services:
   app:
     image: node:alpine
