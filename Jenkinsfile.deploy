@@ -9,15 +9,15 @@ pipeline {
       }
     }
 
-    stage('Deploy (docker compose up)') {
+    stage('Deploy (docker-compose up)') {
       steps {
         // adjust path to your compose file if in subfolder
         sh """
           set -o errexit
           # show file for debug
           ls -la
-          # start containers (use docker compose v2)
-          docker compose -f frappe_docker/pwd.yml up -d
+          # start containers (use docker-compose v2)
+          docker-compose -f frappe_docker/pwd.yml up -d
         """
       }
     }
