@@ -1,51 +1,67 @@
 pipeline {
     agent any
 
+    environment {
+        COMPOSE_PATH = 'frappe_docker/pwd.yml'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
+                echo "Checking out source from Git..."
                 checkout scm
             }
         }
 
         stage('Create Compose File') {
             steps {
+                echo "Creating docker-compose YAML file..."
                 sh '''#!/bin/bash
                 mkdir -p frappe_docker
-                cat > frappe_docker/pwd.yml <<'EOF'
+                cat > ${COMPOSE_PATH} <<'EOF'
 version: '3.8'
 
 services:
   app:
-    image: node:alpine
+    image: node:18-alpine
     container_name: my-node-app
-    ports:
-      - "3000:3000"
     working_dir: /usr/src/app
     volumes:
       - .:/usr/src/app
-    command: sh -c "npm install && node app.js"
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm start"
 EOF
+
+                echo "File created at ${COMPOSE_PATH}:"
+                cat ${COMPOSE_PATH}
                 '''
             }
         }
 
         stage('Validate Compose File') {
             steps {
-                sh 'docker-compose -f frappe_docker/pwd.yml config'
+                echo "Validating Docker Compose YAML..."
+                sh 'docker-compose -f ${COMPOSE_PATH} config'
             }
         }
 
         stage('Deploy (docker-compose up)') {
             steps {
-                sh 'docker-compose -f frappe_docker/pwd.yml up -d'
+                echo "Starting container using Docker Compose..."
+                sh 'docker-compose -f ${COMPOSE_PATH} up -d'
             }
         }
     }
 
     post {
+        success {
+            echo '✅ Deployment successful!'
+        }
         failure {
-            echo 'Deploy pipeline failed.'
+            echo '❌ Deploy pipeline failed.'
+            sh 'docker-compose -f ${COMPOSE_PATH} down || true'
         }
     }
 }
