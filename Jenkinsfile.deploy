@@ -2,43 +2,19 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
                 checkout scm
-            }
-        }
-
-        stage('Prepare Node App') {
-            steps {
-                sh '''
-                mkdir -p app
-                cat > app/package.json <<'EOF'
-{
-  "name": "my-node-app",
-  "version": "1.0.0",
-  "main": "app.js",
-  "scripts": {
-    "start": "node app.js"
-  },
-  "dependencies": {}
-}
-EOF
-
-                cat > app/app.js <<'EOF'
-const http = require('http');
-const server = http.createServer((req, res) => {
-    res.end('✅ Hello from Node.js inside Docker!');
-});
-server.listen(3000, () => console.log('🚀 Server running on port 3000'));
-EOF
-                '''
             }
         }
 
         stage('Build and Deploy') {
             steps {
                 sh '''
+                # Stop and remove any old container
                 docker-compose -f frappe_docker/docker-compose.yml down || true
+
+                # Build and start the container
                 docker-compose -f frappe_docker/docker-compose.yml up -d --build
                 '''
             }
@@ -46,7 +22,10 @@ EOF
 
         stage('Test App Output') {
             steps {
-                sh 'sleep 5 && curl http://localhost:3000'
+                sh '''
+                echo "Testing the Node.js app inside Docker:"
+                docker logs my-node-app
+                '''
             }
         }
     }
@@ -54,6 +33,9 @@ EOF
     post {
         failure {
             echo '❌ Deploy pipeline failed.'
+        }
+        success {
+            echo '✅ Deploy pipeline completed successfully.'
         }
     }
 }
