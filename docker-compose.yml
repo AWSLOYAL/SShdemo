@@ -1,3 +1,8 @@
+stage('Create Docker Compose File') {
+    steps {
+        sh '''
+        mkdir -p frappe_docker
+        cat > frappe_docker/docker-compose.yml <<'EOF'
 version: '3.8'
 
 services:
@@ -6,3 +11,7 @@ services:
     container_name: my-node-app
     ports:
       - "3000:3000"
+EOF
+        '''
+    }
+}
