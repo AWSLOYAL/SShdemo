@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: ..      # Build context is one level up
+      dockerfile: frappe_docker/Dockerfile
     container_name: my-node-app
     ports:
       - "3000:3000"
