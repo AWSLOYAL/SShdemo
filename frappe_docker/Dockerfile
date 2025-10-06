@@ -1,0 +1,15 @@
+stage('Create Dockerfile') {
+    steps {
+        sh '''
+        cat > frappe_docker/Dockerfile <<'EOF'
+FROM node:18-alpine
+WORKDIR /usr/src/app
+COPY ../app/package*.json ./
+RUN npm install
+COPY ../app ./
+EXPOSE 3000
+CMD ["node", "app.js"]
+EOF
+        '''
+    }
+}
