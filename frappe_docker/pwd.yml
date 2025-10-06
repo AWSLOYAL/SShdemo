@@ -1,17 +1,12 @@
-stage('Create Compose File') {
-    steps {
-        sh '''
-        mkdir -p frappe_docker
-        cat > frappe_docker/pwd.yml <<EOF
 version: '3.8'
+
 services:
   app:
-    image: node:alpine
+    image: node:18-alpine
     container_name: my-node-app
     ports:
       - "3000:3000"
-    command: node app.js
-EOF
-        '''
-    }
-}
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+    command: sh -c "npm install && npm start"
