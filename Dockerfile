@@ -1,14 +1,12 @@
-# Use official Node LTS alpine image
+# frappe_docker/Dockerfile
 FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# Install only production dependencies at build time
-COPY package*.json ./
-RUN npm install --production
-
-# Copy source
-COPY . .
+# Copy app files into container
+COPY app/package*.json ./
+RUN npm install
+COPY app ./
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["node", "app.js"]
