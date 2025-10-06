@@ -1,14 +1,26 @@
-// simple Express app
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
-const name = process.env.APP_NAME || 'MyNodeApp';
+stage('Prepare Node App') {
+    steps {
+        sh '''
+        mkdir -p app
+        cat > app/package.json <<'EOF'
+{
+  "name": "my-node-app",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {}
+}
+EOF
 
-app.get('/', (req, res) => {
-  res.send(`Hello from Node.js! App Name: ${name}\n`);
+        cat > app/app.js <<'EOF'
+const http = require('http');
+const server = http.createServer((req, res) => {
+  res.end('✅ Hello from Node.js inside Docker!');
 });
-
-app.listen(port, () => {
-  console.log(`${name} listening on ${port}`);
-});
-
+server.listen(3000, () => console.log('🚀 Server running on port 3000'));
+EOF
+        '''
+    }
+}
