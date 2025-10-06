@@ -1,12 +1,24 @@
-version: '3.8'
+stage('Prepare Node App') {
+    steps {
+        sh '''
+        mkdir -p app
+        cat > app/package.json <<'EOF'
+        {
+          "name": "my-node-app",
+          "version": "1.0.0",
+          "main": "app.js",
+          "scripts": { "start": "node app.js" },
+          "dependencies": {}
+        }
+        EOF
 
-services:
-  app:
-    build: .
-    image: my-node-app:latest
-    container_name: my-node-app
-    ports:
-      - "3000:3000"
-    environment:
-      - APP_NAME=MyNodeApp
-    restart: unless-stopped
+        cat > app/app.js <<'EOF'
+        const http = require('http');
+        const server = http.createServer((req, res) => {
+          res.end('Hello from Node.js inside Docker!');
+        });
+        server.listen(3000, () => console.log('Server running on port 3000'));
+        EOF
+        '''
+    }
+}
