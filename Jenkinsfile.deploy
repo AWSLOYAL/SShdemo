@@ -11,10 +11,7 @@ pipeline {
         stage('Prepare Node App') {
             steps {
                 sh '''
-                # Create app directory
                 mkdir -p app
-
-                # Create package.json
                 cat > app/package.json <<'EOF'
 {
   "name": "my-node-app",
@@ -27,7 +24,6 @@ pipeline {
 }
 EOF
 
-                # Create app.js
                 cat > app/app.js <<'EOF'
 const http = require('http');
 const server = http.createServer((req, res) => {
@@ -39,47 +35,12 @@ EOF
             }
         }
 
-        stage('Create Docker Compose File') {
+        stage('Build and Deploy') {
             steps {
                 sh '''
-                mkdir -p frappe_docker
-                cat > frappe_docker/pwd.yml <<'EOF'
-version: '3.8'
-
-services:
-  app:
-    image: node:18-alpine
-    container_name: my-node-app
-    ports:
-      - "3000:3000"
-    working_dir: /usr/src/app
-    volumes:
-      - ./app:/usr/src/app
-    command: sh -c "npm install && node app.js"
-EOF
+                docker-compose -f frappe_docker/docker-compose.yml down || true
+                docker-compose -f frappe_docker/docker-compose.yml up -d --build
                 '''
-            }
-        }
-
-        stage('Validate Docker Compose File') {
-            steps {
-                sh 'docker-compose -f frappe_docker/pwd.yml config'
-            }
-        }
-
-        stage('Clean Previous Container') {
-            steps {
-                sh '''
-                if [ "$(docker ps -aq -f name=my-node-app)" ]; then
-                    docker rm -f my-node-app || true
-                fi
-                '''
-            }
-        }
-
-        stage('Deploy (docker-compose up)') {
-            steps {
-                sh 'docker-compose -f frappe_docker/pwd.yml up -d'
             }
         }
 
